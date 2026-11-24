@@ -1,0 +1,466 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pitch da Apresentação de Fomento de Negócio - DJ PANKADAO</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { width: 100%; height: 100%; background-color: #0b0f19; color: #ffffff; font-family: sans-serif; overflow: hidden; display: flex; flex-direction: column; }
+        .slide-container { flex: 1; display: flex; justify-content: center; align-items: center; position: relative; width: 100%; height: 100%; overflow: hidden; background-color: #0b0f19; }
+        .slide-wrapper { position: relative; width: 100%; height: 100%; max-width: 100vw; max-height: 100vh; aspect-ratio: 16 / 9; display: flex; justify-content: center; align-items: center; }
+        @keyframes zoomEntrada {
+            0% { transform: scale(0.85); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animar-zoom { animation: zoomEntrada 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+        .slide-img { width: 100%; height: 100%; object-fit: fill; display: block; position: absolute; top: 0; left: 0; }
+        .capa-fullscreen { width: 100% !important; height: 100% !important; object-fit: fill !important; position: absolute !important; top: 0 !important; left: 0 !important; }
+        .text-overlay { position: absolute; display: block; pointer-events: none; }
+        .hotspot { position: absolute; cursor: pointer; background: rgba(0, 102, 204, 0.0); border-radius: 4px; transition: background 0.2s; z-index: 10; }
+        .hotspot:hover { background: rgba(0, 102, 204, 0.15); }
+        .nav-bar { display: none; width: 100%; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(15, 23, 42, 0.98); border-top: 1px solid rgba(255,255,255,0.1); gap: 6px; flex-shrink: 0; z-index: 100; }
+        .nav-bar.ativo { display: flex; }
+        .btn { background: #0066cc; color: white; border: none; padding: 8px 12px; font-size: 13px; font-weight: bold; border-radius: 6px; cursor: pointer; box-shadow: 0 4px 12px rgba(0,102,204,0.4); flex: 1; text-align: center; }
+        .btn:active { transform: scale(0.96); }
+        .counter { font-size: 13px; font-weight: bold; color: #94a3b8; min-width: 55px; text-align: center; flex-shrink: 0; }
+    </style>
+</head>
+<body>
+
+    <div class="slide-container" id="swipeArea" onclick="tratarCliqueCapa()">
+        <div class="slide-wrapper" id="slideWrapper">
+            <img id="slideImage" class="slide-img capa-fullscreen" src="INICIO.png" alt="Tela Inicial">
+            <div id="textOverlayLayer" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;"></div>
+            <div id="hotspotLayer"></div>
+        </div>
+    </div>
+    <div class="nav-bar" id="navBar">
+        <button class="btn" onclick="voltarInicio()">Índice</button>
+        <button class="btn" onclick="mudarSlide(-1)">Anterior</button>
+        <span class="counter" id="slideCounter">1 / 62</span>
+        <button class="btn" id="btnAvancar" onclick="mudarSlide(1)">Próximo</button>
+    </div>
+    <audio id="audioNarration"></audio>
+    <audio id="audioBGM" src="AUDIOS/AUDIO.mp3" loop></audio>
+    <script>
+        let currentSlide = 0;
+        const totalSlides = 62;
+        const intervaloMs = 2 * 1000;
+        let activeTimeouts = [];
+        const imgElement = document.getElementById('slideImage');
+        const counterElement = document.getElementById('slideCounter');
+        const navBar = document.getElementById('navBar');
+        const btnAvancar = document.getElementById('btnAvancar');
+        const hotspotLayer = document.getElementById('hotspotLayer');
+        const textOverlayLayer = document.getElementById('textOverlayLayer');
+        const narration = document.getElementById('audioNarration');
+        const bgm = document.getElementById('audioBGM');
+        const indexLinks = {
+            1: [
+                { top: '3.32958878411187%', left: '48.055534362793%', width: '51.9444317287869%', height: '25.8500094943576%', target: 4 },
+                { top: '27.9097815619575%', left: '48.0555682712131%', width: '51.9444317287869%', height: '21.0031314425998%', target: 8 },
+                { top: '48.7669304741753%', left: '48.0555682712131%', width: '51.9444317287869%', height: '16.156255086263%', target: 9 },
+                { top: '64.9231838650174%', left: '48.055542839898%', width: '51.9444317287869%', height: '16.156255086263%', target: 13 },
+                { top: '81.0794406467014%', left: '48.0555682712131%', width: '51.9444317287869%', height: '11.3093787299262%', target: 16 },
+            ],
+            2: [
+                { top: '9.0972179836697%', left: '48.4722095065647%', width: '51.5277650621202%', height: '16.156255086263%', target: 17 },
+                { top: '23.3511454264323%', left: '48.4722095065647%', width: '51.5277650621202%', height: '16.156255086263%', target: 18 },
+                { top: '38.1129998101128%', left: '48.4722095065647%', width: '51.5277650621202%', height: '16.156255086263%', target: 19 },
+                { top: '52.3669297960069%', left: '48.4722095065647%', width: '51.5277650621202%', height: '16.156255086263%', target: 21 },
+                { top: '66.8748236762153%', left: '48.4722095065647%', width: '51.5277650621202%', height: '11.3093787299262%', target: 22 },
+                { top: '77.8272298177083%', left: '48.4722095065647%', width: '51.5277650621202%', height: '6.46250237358941%', target: 45 },
+            ],
+            3: [
+                { top: '9.22178480360243%', left: '48.4722095065647%', width: '51.5277650621202%', height: '25.8500094943576%', target: 55 },
+                { top: '32.1104634602865%', left: '48.4722095065647%', width: '51.5277650621202%', height: '35.5437452528212%', target: 58 },
+                { top: '66.427490234375%', left: '48.4722095065647%', width: '51.5277650621202%', height: '11.3093787299262%', target: 59 },
+                { top: '77.1259290907118%', left: '48.4722095065647%', width: '51.5277650621202%', height: '11.3093787299262%', target: 61 },
+            ],
+        };
+        const slideTextos = {
+            4: [
+                { file: 'imagens_slides/slide_4_txt_1.png', top: '5.33333333333333%', left: '0%', width: '86.25%', height: '19.3333333333333%', isTop: true },
+                { file: 'imagens_slides/slide_4_txt_2.png', top: '0.691023614671495%', left: '2.22222222222222%', width: '97.6388888888889%', height: '16.2908833821615%', isTop: true },
+                { file: 'imagens_slides/slide_4_txt_3.png', top: '89.0332302517361%', left: '0%', width: '76.9354587131076%', height: '10.9054768880208%', isTop: false },
+            ],
+            5: [
+            ],
+            6: [
+                { file: 'imagens_slides/slide_6_txt_1.png', top: '71.4228719075521%', left: '1.11111111111111%', width: '98.8888888888889%', height: '28.8703240288628%', isTop: false },
+            ],
+            7: [
+                { file: 'imagens_slides/slide_7_txt_1.png', top: '64.0906711154514%', left: '1.94444444444444%', width: '98.0555555555556%', height: '41.0637986924913%', isTop: false },
+            ],
+            8: [
+                { file: 'imagens_slides/slide_8_txt_1.png', top: '0.222222222222222%', left: '1.94444444444444%', width: '98.0555640326606%', height: '15.041015625%', isTop: true },
+                { file: 'imagens_slides/slide_8_txt_2.png', top: '75.2637261284722%', left: '1.94444444444444%', width: '98.0555640326606%', height: '24.9075588650174%', isTop: false },
+            ],
+            9: [
+                { file: 'imagens_slides/slide_9_txt_1.png', top: '3.35863516065809%', left: '1.38888888888889%', width: '98.5935295952691%', height: '9.82838185628255%', isTop: true },
+            ],
+            10: [
+                { file: 'imagens_slides/slide_10_txt_1.png', top: '67.5555555555556%', left: '-1.09361331447467E-05%', width: '99.999991522895%', height: '30.8315124511719%', isTop: false },
+            ],
+            11: [
+                { file: 'imagens_slides/slide_11_txt_1.png', top: '75.3306545681424%', left: '-1.09361331447467E-05%', width: '99.999991522895%', height: '23.8304629855686%', isTop: false },
+            ],
+            12: [
+                { file: 'imagens_slides/slide_12_txt_1.png', top: '72.9382866753472%', left: '-0.104166666666667%', width: '100%', height: '27.0617150200738%', isTop: false },
+            ],
+            13: [
+                { file: 'imagens_slides/slide_13_txt_1.png', top: '77.5447387695313%', left: '0%', width: '100%', height: '20.5992126464844%', isTop: false },
+                { file: 'imagens_slides/slide_13_txt_2.png', top: '0.666666666666667%', left: '2.22222222222222%', width: '92.2135416666667%', height: '9.82838185628255%', isTop: true },
+            ],
+            14: [
+                { file: 'imagens_slides/slide_14_txt_1.png', top: '66.6666666666667%', left: '1.25%', width: '98.75%', height: '33.5242173936632%', isTop: false },
+            ],
+            15: [
+                { file: 'imagens_slides/slide_15_txt_1.png', top: '64.7887301974826%', left: '1.94444444444444%', width: '98.0555555555556%', height: '34.4352586534288%', isTop: false },
+            ],
+            16: [
+                { file: 'imagens_slides/slide_16_txt_1.png', top: '2.54083993699816%', left: '2.74305555555556%', width: '97.6388888888889%', height: '6.5971302456326%', isTop: true },
+                { file: 'imagens_slides/slide_16_txt_2.png', top: '71.5555555555556%', left: '1.25001099374559%', width: '98.75%', height: '28.5427110460069%', isTop: false },
+            ],
+            17: [
+                { file: 'imagens_slides/slide_17_txt_1.png', top: '0.666666666666667%', left: '3.05555555555556%', width: '96.9444444444444%', height: '7.67422570122613%', isTop: true },
+                { file: 'imagens_slides/slide_17_txt_2.png', top: '78.4905192057292%', left: '1.11111111111111%', width: '98.8888804117839%', height: '19.7914089626736%', isTop: false },
+            ],
+            18: [
+                { file: 'imagens_slides/slide_18_txt_1.png', top: '5.33333333333333%', left: '0%', width: '86.25%', height: '19.3333333333333%', isTop: true },
+                { file: 'imagens_slides/slide_18_txt_2.png', top: '1.80234464009603%', left: '1.80555555555556%', width: '98.4722137451172%', height: '7.13567776150174%', isTop: true },
+                { file: 'imagens_slides/slide_18_txt_3.png', top: '89.1833970811632%', left: '0%', width: '99.9999745686849%', height: '8.75130377875434%', isTop: false },
+            ],
+            19: [
+                { file: 'imagens_slides/slide_19_txt_1.png', top: '71.2463717990451%', left: '0%', width: '100%', height: '28.7536315917969%', isTop: false },
+                { file: 'imagens_slides/slide_19_txt_2.png', top: '6.76640404595269E-02%', left: '2.08333333333333%', width: '97.9166666666667%', height: '11.1208919949002%', isTop: true },
+            ],
+            21: [
+                { file: 'imagens_slides/slide_21_txt_1.png', top: '74.6974622938368%', left: '0%', width: '100%', height: '25.4460890028212%', isTop: false },
+                { file: 'imagens_slides/slide_21_txt_2.png', top: '1.18845144907633%', left: '2.91666666666667%', width: '97.0833333333333%', height: '8.75130377875434%', isTop: true },
+            ],
+            22: [
+                { file: 'imagens_slides/slide_22_txt_1.png', top: '44.4537183973524%', left: '0%', width: '1.51535431543986%', height: '4.98150465223524%', isTop: true },
+                { file: 'imagens_slides/slide_22_txt_2.png', top: '3.4478039211697%', left: '5.69444444444444%', width: '94.3055301242404%', height: '15.7523362901476%', isTop: true },
+            ],
+            23: [
+            ],
+            24: [
+            ],
+            25: [
+            ],
+            26: [
+            ],
+            27: [
+            ],
+            28: [
+            ],
+            29: [
+            ],
+            30: [
+            ],
+            31: [
+                { file: 'imagens_slides/slide_31_txt_1.png', top: '71.0149807400174%', left: '-1.09361331447467E-05%', width: '99.999991522895%', height: '28.4641655815972%', isTop: false },
+            ],
+            32: [
+            ],
+            33: [
+            ],
+            34: [
+            ],
+            35: [
+                { file: 'imagens_slides/slide_35_txt_1.png', top: '76.2631700303819%', left: '30.7608816358778%', width: '28.2608710394965%', height: '4.98150465223524%', isTop: false },
+                { file: 'imagens_slides/slide_35_txt_2.png', top: '76.2631700303819%', left: '71.1028332180447%', width: '17.2826120588515%', height: '4.98150465223524%', isTop: false },
+            ],
+            36: [
+            ],
+            37: [
+            ],
+            38: [
+            ],
+            39: [
+            ],
+            40: [
+            ],
+            41: [
+            ],
+            42: [
+            ],
+            43: [
+            ],
+            44: [
+            ],
+            45: [
+                { file: 'imagens_slides/slide_45_txt_1.png', top: '0%', left: '0.416666666666667%', width: '79.1666666666667%', height: '22.7533857557509%', isTop: true },
+            ],
+            46: [
+            ],
+            47: [
+            ],
+            48: [
+            ],
+            49: [
+            ],
+            50: [
+                { file: 'imagens_slides/slide_50_txt_1.png', top: '85.5426093207465%', left: '6.14891741010878%', width: '50.0183741251628%', height: '4.98150465223524%', isTop: false },
+            ],
+            51: [
+            ],
+            52: [
+            ],
+            53: [
+            ],
+            54: [
+            ],
+            55: [
+                { file: 'imagens_slides/slide_55_txt_1.png', top: '71.8611924913194%', left: '0%', width: '100%', height: '28.1388108995226%', isTop: false },
+                { file: 'imagens_slides/slide_55_txt_2.png', top: '1.15286085340712%', left: '1.66666666666667%', width: '98.3333333333333%', height: '14.136710272895%', isTop: true },
+            ],
+            56: [
+                { file: 'imagens_slides/slide_56_txt_1.png', top: '70.9723036024306%', left: '0%', width: '100%', height: '28.1388108995226%', isTop: false },
+            ],
+            57: [
+                { file: 'imagens_slides/slide_57_txt_1.png', top: '71.8611924913194%', left: '0%', width: '100%', height: '28.1388108995226%', isTop: false },
+            ],
+            58: [
+                { file: 'imagens_slides/slide_58_txt_1.png', top: '1.11111111111111%', left: '2.08333333333333%', width: '97.3611111111111%', height: '17.3679623074002%', isTop: true },
+                { file: 'imagens_slides/slide_58_txt_2.png', top: '62.4698689778646%', left: '2.08333333333333%', width: '97.9166666666667%', height: '20.5992126464844%', isTop: false },
+                { file: 'imagens_slides/slide_58_txt_3.png', top: '83.0690782335069%', left: '2.08333333333333%', width: '97.9166666666667%', height: '17.3679623074002%', isTop: false },
+            ],
+            59: [
+                { file: 'imagens_slides/slide_59_txt_1.png', top: '80.6666666666667%', left: '0.833333333333333%', width: '99.1666666666667%', height: '17.6111111111111%', isTop: false },
+                { file: 'imagens_slides/slide_59_txt_2.png', top: '0.222222222222222%', left: '1.66666666666667%', width: '98.3333333333333%', height: '11.982554965549%', isTop: true },
+            ],
+            60: [
+                { file: 'imagens_slides/slide_60_txt_1.png', top: '3.11230087280273%', left: '5.55337905883789%', width: '88.6076778835721%', height: '9.28985087076823%', isTop: true },
+                { file: 'imagens_slides/slide_60_txt_2.png', top: '67.6525472005208%', left: '3.36805555555556%', width: '96.3888888888889%', height: '29.2495354546441%', isTop: false },
+            ],
+            61: [
+                { file: 'imagens_slides/slide_61_txt_1.png', top: '0%', left: '2.22222222222222%', width: '97.7777693006727%', height: '11.982554965549%', isTop: true },
+                { file: 'imagens_slides/slide_61_txt_2.png', top: '76.9440578884549%', left: '-1.09361331447467E-05%', width: '99.999991522895%', height: '22.7533857557509%', isTop: false },
+            ],
+            62: [
+            ],
+        };
+        const audioMap = {
+            4: "AUDIOS/slide_04.mp3",
+            6: "AUDIOS/slide_06.mp3",
+            7: "AUDIOS/slide_07.mp3",
+            8: "AUDIOS/slide_08.mp3",
+            9: "AUDIOS/slide_09.mp3",
+            10: "AUDIOS/slide_10.mp3",
+            11: "AUDIOS/slide_11.mp3",
+            12: "AUDIOS/slide_12.mp3",
+            13: "AUDIOS/slide_13.mp3",
+            14: "AUDIOS/slide_14.mp3",
+            15: "AUDIOS/slide_15.mp3",
+            16: "AUDIOS/slide_16.mp3",
+            17: "AUDIOS/slide_17.mp3",
+            18: "AUDIOS/slide_18.mp3",
+            19: "AUDIOS/slide_19.mp3",
+            20: "AUDIOS/slide_20.mp3",
+            21: "AUDIOS/slide_21.mp3",
+            22: "AUDIOS/slide_22.mp3",
+            31: "AUDIOS/slide_31.mp3",
+            45: "AUDIOS/slide_45.mp3",
+            55: "AUDIOS/slide_55.mp3",
+            56: "AUDIOS/slide_56.mp3",
+            57: "AUDIOS/slide_57.mp3",
+            58: "AUDIOS/slide_58.mp3",
+            59: "AUDIOS/slide_59.mp3",
+            60: "AUDIOS/slide_60.mp3",
+            61: "AUDIOS/slide_61.mp3",
+        };
+        function limparTimers() {
+            activeTimeouts.forEach(t => clearTimeout(t));
+            activeTimeouts = [];
+        }
+        function adicionarTexto(item, animar) {
+            const el = document.createElement('img');
+            el.src = item.file;
+            el.className = animar ? 'text-overlay animar-zoom' : 'text-overlay';
+            el.style.top = item.top;
+            el.style.left = item.left;
+            el.style.width = item.width;
+            el.style.height = item.height;
+            textOverlayLayer.appendChild(el);
+        }
+        function renderHotspots(slideNum) {
+            hotspotLayer.innerHTML = '';
+            if (indexLinks[slideNum]) {
+                indexLinks[slideNum].forEach(link => {
+                    const div = document.createElement('div');
+                    div.className = 'hotspot';
+                    div.style.top = link.top;
+                    div.style.left = link.left;
+                    div.style.width = link.width;
+                    div.style.height = link.height;
+                    div.onclick = (e) => {
+                        e.stopPropagation();
+                        irParaSlide(link.target);
+                    };
+                    hotspotLayer.appendChild(div);
+                });
+            }
+        }
+        function processarOrdemSlide(slideNum) {
+            textOverlayLayer.innerHTML = '';
+            limparTimers();
+            narration.onended = null;
+            narration.pause();
+            narration.currentTime = 0;
+            
+            const itens = slideTextos[slideNum] || [];
+            const itensTop = itens.filter(item => item.isTop);
+            const itensBottom = itens.filter(item => !item.isTop);
+            const temAudio = Boolean(audioMap[slideNum]);
+            
+            if (temAudio) {
+                bgm.pause();
+            } else {
+                if (bgm.paused) { bgm.play().catch(e => {}); }
+            }
+            
+            if (slideNum === 60) {
+                activeTimeouts.push(setTimeout(() => {
+                    itens.forEach(item => adicionarTexto(item, true));
+                    if (temAudio) {
+                        setTimeout(() => {
+                            narration.src = audioMap[slideNum];
+                            narration.load();
+                            narration.play().catch(e => {});
+                        }, 400);
+                    }
+                }, intervaloMs));
+                return;
+            }
+            
+            if (itensTop.length > 0) {
+                activeTimeouts.push(setTimeout(() => {
+                    itensTop.forEach(item => adicionarTexto(item, true));
+                    if (temAudio) {
+                        narration.src = audioMap[slideNum];
+                        narration.load();
+                        narration.play().catch(e => {});
+                    }
+                }, intervaloMs));
+            } else if (temAudio) {
+                activeTimeouts.push(setTimeout(() => {
+                    narration.src = audioMap[slideNum];
+                    narration.load();
+                    narration.play().catch(e => {});
+                }, intervaloMs));
+            }
+            
+            if (itensBottom.length > 0) {
+                if (itensTop.length > 0) {
+                    activeTimeouts.push(setTimeout(() => {
+                        itensBottom.forEach(item => adicionarTexto(item, false));
+                    }, intervaloMs + 3000));
+                } else {
+                    activeTimeouts.push(setTimeout(() => {
+                        itensBottom.forEach(item => adicionarTexto(item, false));
+                    }, intervaloMs));
+                }
+            }
+        }
+        function atualizarSlide() {
+            narration.onended = null;
+            
+            if (currentSlide === 0) {
+                imgElement.src = "INICIO.png";
+                imgElement.className = "slide-img capa-fullscreen";
+                navBar.classList.remove('ativo');
+                hotspotLayer.innerHTML = '';
+                textOverlayLayer.innerHTML = '';
+                limparTimers();
+                narration.pause();
+                bgm.pause();
+            } else {
+                imgElement.className = "slide-img";
+                if (currentSlide >= 1 && currentSlide <= 3) {
+                    imgElement.src = "imagens_slides/slide_" + currentSlide + ".png";
+                    textOverlayLayer.innerHTML = '';
+                    limparTimers();
+                    narration.pause();
+                    bgm.pause();
+                } else if (currentSlide === 20) {
+                    imgElement.src = "imagens_slides/slide_20.png";
+                    textOverlayLayer.innerHTML = '';
+                    limparTimers();
+                    const temAudio20 = Boolean(audioMap[20]);
+                    if (temAudio20) {
+                        bgm.pause();
+                        setTimeout(() => {
+                            narration.src = audioMap[20];
+                            narration.load();
+                            narration.play().catch(e => {});
+                        }, 400);
+                    } else {
+                        narration.pause();
+                        if (bgm.paused) { bgm.play().catch(e => {}); }
+                    }
+                } else {
+                    imgElement.src = "imagens_slides/slide_" + currentSlide + "_bg.png";
+                    processarOrdemSlide(currentSlide);
+                }
+                
+                navBar.classList.add('ativo');
+                counterElement.innerText = currentSlide + " / " + totalSlides;
+                renderHotspots(currentSlide);
+                
+                if (currentSlide === totalSlides) {
+                    btnAvancar.style.display = "none";
+                } else {
+                    btnAvancar.style.display = "block";
+                }
+            }
+        }
+        function tratarCliqueCapa() {
+            if (currentSlide === 0) {
+                bgm.play().then(() => { bgm.pause(); bgm.currentTime = 0; }).catch(e => {});
+                narration.play().then(() => { narration.pause(); narration.currentTime = 0; }).catch(e => {});
+                if (document.documentElement.requestFullscreen) {
+                    document.documentElement.requestFullscreen().catch(err => {});
+                } else if (document.documentElement.webkitRequestFullscreen) {
+                    document.documentElement.webkitRequestFullscreen();
+                }
+                if (screen.orientation && screen.orientation.lock) {
+                    screen.orientation.lock('landscape').catch(err => {});
+                }
+                currentSlide = 1;
+                atualizarSlide();
+            }
+        }
+        function irParaSlide(num) {
+            currentSlide = num;
+            if (currentSlide < 1) currentSlide = 1;
+            if (currentSlide > totalSlides) currentSlide = totalSlides;
+            atualizarSlide();
+        }
+        function mudarSlide(direcao) {
+            irParaSlide(currentSlide + direcao);
+        }
+        function voltarInicio() {
+            irParaSlide(1);
+        }
+        let touchStartX = 0;
+        const swipeArea = document.getElementById('swipeArea');
+        swipeArea.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+        swipeArea.addEventListener('touchend', e => {
+            const touchEndX = e.changedTouches[0].screenX;
+            if (touchStartX - touchEndX > 50) {
+                if (currentSlide === 0) { tratarCliqueCapa(); }
+                else { mudarSlide(1); }
+            }
+            if (touchEndX - touchStartX > 50) {
+                if (currentSlide > 1) { mudarSlide(-1); }
+                else if (currentSlide === 1) { currentSlide = 0; atualizarSlide(); }
+            }
+        });
+    </script>
+</body>
+</html>
